@@ -50,6 +50,9 @@
 <body>
     <div class="grid-container" style="width: 300px;">
         <div>
+          <h4>Twitch Play's Snake</h4>
+        </div>
+        <div>
             <h id="highscore">High Score: 0</h>
         </div>
         <div>
@@ -60,6 +63,7 @@
         </div>
     </div>
 <canvas width="800" height="800" id="game"></canvas>
+<iframe frameborder="5" scrolling="yes" id="chat_embed" src="https://www.twitch.tv/embed/thatgravyboat/chat?darkpopout" height="850" width="400"></iframe>
 <script>
 var canvas = document.getElementById('game');
 var context = canvas.getContext('2d');
