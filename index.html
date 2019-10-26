@@ -14,7 +14,7 @@
     align-items: center;
   }
   canvas {
-    background-color: #B8FF2B;
+    background-color: rgb(121, 182, 0);
     border: 10px solid #232127;
   }
   #score{
@@ -25,6 +25,9 @@
   }
   #lastscore{
     color: azure;
+  }
+  #side {
+    display: block;
   }
   
   .grid-container {
@@ -48,6 +51,21 @@
   </style>
 </head>
 <body>
+  <div class="side">
+    <div class="grid-container" style="width: 300px; margin-bottom: 50px;">
+        <div>
+          <h4>Object Key</h4>
+        </div>
+        <div>
+            <h>🔴: Apple +1 score</h>
+        </div>
+        <div>
+            <h>🟡: Apple 2+ score</h>
+        </div>
+        <div>
+            <h>⚫: Apple -1 score</h>
+        </div>    
+    </div>
     <div class="grid-container" style="width: 300px;">
         <div>
           <h4>Twitch Play's Snake</h4>
@@ -60,10 +78,10 @@
         </div>
         <div>
             <h id="score">Current Score: 0</h>
-        </div>
+        </div>    
     </div>
+  </div>
 <canvas width="800" height="800" id="game"></canvas>
-<iframe frameborder="5" scrolling="yes" id="chat_embed" src="https://www.twitch.tv/embed/thatgravyboat/chat?darkpopout" height="850" width="400"></iframe>
 <script>
 var canvas = document.getElementById('game');
 var context = canvas.getContext('2d');
@@ -74,27 +92,60 @@ var highscore=0;
 var lastscore=0;
   
 var snake = {
-  x: 160,
-  y: 160,
+  x: getRandomInt(0, 50) * grid,
+  y: getRandomInt(0, 50) * grid,
   
   // snake velocity. moves one grid length every frame in either the x or y direction
-  dx: grid,
-  dy: 0,
+  dx: 0,
+  dy: grid,
   
   // keep track of all grids the snake body occupies
   cells: [],
   
-  // length of the snake. grows when eating an apple
+  //Snake Length
   maxCells: 4
 };
 var apple = {
-  x: 320,
-  y: 320
+  x: getRandomInt(0, 50) * grid,
+  y: getRandomInt(0, 50) * grid,
 };
+var gapple = {
+  x: getRandomInt(0, 50) * grid,
+  y: getRandomInt(0, 50) * grid,
+};
+var bomb = {
+  x: getRandomInt(0, 50) * grid,
+  y: getRandomInt(0, 50) * grid,
+};
+
+
 // get random whole numbers in a specific range
 // @see https://stackoverflow.com/a/1527820/2124254
 function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min)) + min;
+}
+
+function restartGame() {
+  snake.x = getRandomInt(0, 50) * grid;
+  snake.y = getRandomInt(0, 50) * grid;
+  snake.cells = [];
+  snake.maxCells = 4;
+  snake.dx = grid;
+  snake.dy = 0;
+  gapple.x = getRandomInt(0, 50) * grid;
+  gapple.y = getRandomInt(0, 50) * grid;
+  apple.x = getRandomInt(0, 50) * grid;
+  apple.y = getRandomInt(0, 50) * grid;
+  if (score === -1) {
+    lastscore = score + 1;
+  }
+  else if (score >= 1 ) {
+    lastscore = score;
+  }
+  score = 0;
+  document.getElementById("score").innerHTML = "Current Score: " + score;
+  document.getElementById("highscore").innerHTML = "High Score: " + highscore;
+  document.getElementById("lastscore").innerHTML = "Last Score: " + lastscore;
 }
 // game loop
 function loop() {
@@ -129,23 +180,52 @@ function loop() {
   if (snake.cells.length > snake.maxCells) {
     snake.cells.pop();
   }
+  // draw gold apple
+  context.fillStyle = 'yellow';
+  context.beginPath();
+  context.arc(gapple.x + 8, gapple.y + 8, 7, 0, 2 * Math.PI);
+  context.fill();
   // draw apple
-  context.fillStyle = 'red';
-  context.fillRect(apple.x, apple.y, grid-1, grid-1);
+  context.fillStyle = 'Red';
+  context.beginPath();
+  context.arc(apple.x + 8, apple.y + 8, 7, 0, 2 * Math.PI);
+  context.fill();
+  // draw bomb
+  context.fillStyle = 'black';
+  context.beginPath();
+  context.arc(bomb.x + 8, bomb.y + 8, 7, 0, 2 * Math.PI);
+  context.fill();
+
   // draw snake one cell at a time
   context.fillStyle = 'green';
   snake.cells.forEach(function(cell, index) {
     
     // drawing 1 px smaller than the grid creates a grid effect in the snake body so you can see how long it is
-    context.fillRect(cell.x, cell.y, grid-1, grid-1);  
+    context.fillRect(cell.x, cell.y, grid, grid);  
     // snake ate apple
     if (cell.x === apple.x && cell.y === apple.y) {
       snake.maxCells++;
       score += 1;
-      // canvas is 400x400 which is 25x25 grids 
-      apple.x = getRandomInt(0, 25) * grid;
-      apple.y = getRandomInt(0, 25) * grid;
+      apple.x = getRandomInt(0, 50) * grid;
+      apple.y = getRandomInt(0, 50) * grid;
       document.getElementById("score").innerHTML = "Current Score: " + score;
+    }
+    else if (cell.x === gapple.x && cell.y === gapple.y) {
+      snake.maxCells++;
+      score += 2;
+      gapple.x = getRandomInt(0, 50) * grid;
+      gapple.y = getRandomInt(0, 50) * grid;
+      document.getElementById("score").innerHTML = "Current Score: " + score;
+    }   
+    else if (cell.x === bomb.x && cell.y === bomb.y) {
+      score -= 1;
+      bomb.x = getRandomInt(0, 50) * grid;
+      bomb.y = getRandomInt(0, 50) * grid;
+      document.getElementById("score").innerHTML = "Current Score: " + score;
+    } 
+
+    if (score === -1) {
+      restartGame();
     }
     // check collision with all cells after this one (modified bubble sort)
     for (var i = index + 1; i < snake.cells.length; i++) {
@@ -157,19 +237,7 @@ function loop() {
         {
           highscore=score;
         }
-        snake.x = 160;
-        snake.y = 160;
-        snake.cells = [];
-        snake.maxCells = 4;
-        snake.dx = grid;
-        snake.dy = 0;
-        apple.x = getRandomInt(0, 25) * grid;
-        apple.y = getRandomInt(0, 25) * grid;
-        lastscore = score;
-        score = 0;
-        document.getElementById("score").innerHTML = "Current Score: " + score;
-        document.getElementById("highscore").innerHTML = "High Score: " + highscore;
-        document.getElementById("lastscore").innerHTML = "Last Score: " + lastscore;
+        restartGame()
       }
     }
   });
@@ -182,24 +250,27 @@ document.addEventListener('keydown', function(e) {
   // shouldn't let you collide with your own body)
   
   // left arrow key
-  if (e.which === 37 && snake.dx === 0) {
+  if (e.which === 65 && snake.dx === 0) {
     snake.dx = -grid;
     snake.dy = 0;
   }
   // up arrow key
-  else if (e.which === 38 && snake.dy === 0) {
+  else if (e.which === 87 && snake.dy === 0) {
     snake.dy = -grid;
     snake.dx = 0;
   }
   // right arrow key
-  else if (e.which === 39 && snake.dx === 0) {
+  else if (e.which === 68 && snake.dx === 0) {
     snake.dx = grid;
     snake.dy = 0;
   }
   // down arrow key
-  else if (e.which === 40 && snake.dy === 0) {
+  else if (e.which === 83 && snake.dy === 0) {
     snake.dy = grid;
     snake.dx = 0;
+  }
+  else if (e.which === 82) {
+    restartGame()
   }
 });
 // start the game
